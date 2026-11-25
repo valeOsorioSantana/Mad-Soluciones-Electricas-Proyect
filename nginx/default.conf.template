@@ -1,0 +1,81 @@
+# Plantilla de Nginx (se procesa con envsubst al iniciar el contenedor).
+# Variable: ALLOWED_HOSTS -> lista de hosts autorizados a solicitar imágenes (ver Dockerfile).
+
+# --- Protección de imágenes contra descarga masiva / hotlinking ---------------------------------
+# 1) Referer inválido (o ausente) => bloqueado. 2) Sec-Fetch-Site "cross-site" o "none" (URL escrita
+# a mano / otro sitio) => bloqueado. 3) Límite de peticiones y conexiones por IP.
+map $invalid_referer $img_bad_referer {
+    default 0;
+    "1"     1;
+}
+map $http_sec_fetch_site $img_bad_site {
+    default     0;
+    "cross-site" 1;
+    "none"       1;
+}
+map "$img_bad_referer$img_bad_site" $img_blocked {
+    default 1;
+    "00"    0;
+}
+
+limit_req_zone  $binary_remote_addr zone=img_req:10m rate=15r/s;
+limit_conn_zone $binary_remote_addr zone=img_conn:10m;
+
+server {
+    listen 8080;
+    server_name _;
+    server_tokens off;
+
+    root /usr/share/nginx/html;
+    index index.html;
+    autoindex off;
+
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 6;
+    gzip_min_length 512;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # Imágenes y video: solo desde esta aplicación
+    location ~* \.(webp|avif|png|jpe?g|gif|mp4|webm)$ {
+        valid_referers ${ALLOWED_HOSTS};
+
+        if ($img_blocked) {
+            return 403;
+        }
+
+        limit_req       zone=img_req burst=60 nodelay;
+        limit_req_status 429;
+        limit_conn      img_conn 20;
+
+        include /etc/nginx/security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        add_header X-Robots-Tag "noimageindex, noarchive" always;
+        add_header Cross-Origin-Resource-Policy "same-origin" always;
+        try_files $uri =404;
+    }
+
+    # Archivos con hash (JS/CSS/fuentes): caché larga
+    location /assets/ {
+        include /etc/nginx/security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # index.html nunca se cachea: así los despliegues se ven de inmediato
+    location = /index.html {
+        include /etc/nginx/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    # SPA fallback
+    location / {
+        include /etc/nginx/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}

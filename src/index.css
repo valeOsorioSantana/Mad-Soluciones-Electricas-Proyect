@@ -1,0 +1,100 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/barlow-condensed/800.css';
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Inter Variable', ui-sans-serif, sans-serif;
+
+  --color-navy-950: #050b1a;
+  --color-navy-900: #0a1730;
+  --color-navy-800: #0e2147;
+  --color-navy-700: #14306a;
+  --color-neon: #3aa0ff;
+  --color-neon-soft: #7cc4ff;
+  --color-brand: #f5c518;
+  --color-brand-strong: #ffd84a;
+  --color-ink: #e8eefc;
+  --color-muted: #a3b2d1;
+  --color-whatsapp: #25d366;
+
+  --shadow-neon: 0 0 0 1px rgb(58 160 255 / 0.55), 0 0 18px rgb(58 160 255 / 0.35),
+    inset 0 0 18px rgb(58 160 255 / 0.12);
+  --shadow-neon-brand: 0 0 0 1px rgb(245 197 24 / 0.7), 0 0 22px rgb(245 197 24 / 0.35),
+    inset 0 0 18px rgb(245 197 24 / 0.1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+  body {
+    @apply bg-navy-950 font-sans text-ink antialiased;
+  }
+  /* Fondo fijo del sitio (capa propia: sin saltos al hacer scroll, también en iOS). */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(70rem 36rem at 90% -8%, rgb(58 160 255 / 0.22), transparent 62%),
+      radial-gradient(50rem 40rem at -12% 38%, rgb(30 90 220 / 0.16), transparent 62%),
+      radial-gradient(60rem 36rem at 105% 78%, rgb(30 90 220 / 0.14), transparent 62%),
+      linear-gradient(180deg, #06102a 0%, #0a1a3d 45%, #071330 100%);
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-wide;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer utilities {
+  .circuit-bg {
+    background-image:
+      linear-gradient(rgb(58 160 255 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(58 160 255 / 0.06) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+  .neon-line {
+    @apply pointer-events-none absolute inset-x-0 top-0 z-0 h-px;
+    background: linear-gradient(90deg, transparent, rgb(58 160 255 / 0.85) 20%, rgb(124 196 255) 50%, rgb(58 160 255 / 0.85) 80%, transparent);
+    box-shadow: 0 0 14px 1px rgb(58 160 255 / 0.55), 0 0 40px 4px rgb(58 160 255 / 0.18);
+  }
+  .no-save {
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+@keyframes acc-down {
+  from { height: 0; opacity: 0; }
+  to { height: var(--radix-accordion-content-height); opacity: 1; }
+}
+@keyframes acc-up {
+  from { height: var(--radix-accordion-content-height); opacity: 1; }
+  to { height: 0; opacity: 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes circuit-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -1; }
+}
