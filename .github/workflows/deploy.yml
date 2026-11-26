@@ -45,7 +45,7 @@ jobs:
     if: ${{ vars.DEPLOY_ENABLED == 'true' }}
     steps:
       - name: Desplegar por SSH
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
