@@ -1,10 +1,11 @@
 name: CI
 
+# Lo ejecuta deploy-cloudflare.yml en cada push a main y en cada pull request
+# (así CI corre una sola vez y el despliegue solo ocurre si pasa).
+# También se puede lanzar a mano desde la pestaña Actions.
 on:
-  push:
-    branches: [main]
-  pull_request:
-  workflow_call: # lo reutiliza el workflow de despliegue
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   verify:
