@@ -50,7 +50,7 @@ Los originales (fotos de celular de varios MB) **no** están en el repositorio. 
 | Hero | 640×800 | ~75 KB |
 | Sobre nosotros | 560×560 | ~40 KB |
 | Miniaturas de galería (16) | 480×360 | 4–60 KB (media ~20 KB) |
-| Ampliación (solo al abrir el visor) | ≤1100 px | 15–320 KB |
+| Ampliación (solo al abrir el visor, con marca de agua) | ≤1100 px | 17–320 KB |
 | Logo | 420×276 / 260×116 | 46 KB / 12 KB |
 
 Carga inicial: solo hero + logo; el resto con `loading="lazy"`.

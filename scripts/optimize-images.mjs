@@ -47,6 +47,9 @@ const SINGLES = [
 ]
 
 const THUMB = { width: 480, height: 360, quality: 70 }
+
+/** Marca de agua (solo en las fotos ampliadas): ancho en px y opacidad. */
+const WATERMARK = { width: 170, opacity: 0.6, margin: 14 }
 const FULL_LONG_SIDE = 1100
 
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`
@@ -114,10 +117,45 @@ async function logo(file, region, width, outName, { feather = [0.1, 0.1], low = 
   report.push({ out: outName, from: (await stat(path.join(LOGO_DIR, file))).size, to: res.size, dim: `${res.width}x${res.height}` })
 }
 
+/** Logo de MAD semitransparente para estampar en las fotos ampliadas. */
+async function buildWatermark() {
+  return sharp(path.join(OUT, 'logo-mark.webp'))
+    .resize({ width: WATERMARK.width })
+    .ensureAlpha()
+    .linear([1, 1, 1, WATERMARK.opacity], [0, 0, 0, 0])
+    .png()
+    .toBuffer()
+}
+
+/** Redimensiona y estampa la marca de agua abajo a la derecha. */
+async function resizeWithWatermark(pipeline, watermark) {
+  const { data, info } = await pipeline
+    .resize(FULL_LONG_SIDE, FULL_LONG_SIDE, { fit: 'inside', withoutEnlargement: true })
+    .toBuffer({ resolveWithObject: true })
+  const wm = await sharp(watermark).metadata()
+  return sharp(data).composite([
+    {
+      input: watermark,
+      left: info.width - wm.width - WATERMARK.margin,
+      top: info.height - wm.height - WATERMARK.margin,
+    },
+  ])
+}
+
 async function main() {
   await rm(OUT, { recursive: true, force: true })
   await mkdir(OUT, { recursive: true })
   const sources = await listSources()
+
+  // Logo: recorte del área del logo en la foto de la camiseta (logo.jpg 1200x896).
+  await logo('logo.jpg', { left: 60, top: 20, width: 1090, height: 720 }, 420, 'logo-full.webp')
+  await logo('logo.jpg', { left: 125, top: 40, width: 970, height: 450 }, 300, 'logo-mark.webp', {
+    feather: [0.03, 0.045],
+    low: 62,
+    high: 115,
+  })
+
+  const watermark = await buildWatermark()
 
   for (const s of SINGLES) {
     const src = sources[s.index]
@@ -137,21 +175,13 @@ async function main() {
       path.join(OUT, 'gallery', `${g.id}-thumb.webp`),
       src,
     )
-    const full = await loadClean(src)
+    const full = await resizeWithWatermark(await loadClean(src), watermark)
     await save(
-      full.resize(FULL_LONG_SIDE, FULL_LONG_SIDE, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 74, effort: 6 }),
+      full.webp({ quality: 74, effort: 6 }),
       path.join(OUT, 'gallery', `${g.id}-full.webp`),
       src,
     )
   }
-
-  // Logo: recorte del área del logo en la foto de la camiseta (logo.jpg 1200x896).
-  await logo('logo.jpg', { left: 60, top: 20, width: 1090, height: 720 }, 420, 'logo-full.webp')
-  await logo('logo.jpg', { left: 125, top: 40, width: 970, height: 450 }, 300, 'logo-mark.webp', {
-    feather: [0.03, 0.045],
-    low: 62,
-    high: 115,
-  })
 
   const total = report.reduce((a, r) => a + r.to, 0)
   const lines = report.map((r) => `${r.out.padEnd(46)} ${r.dim.padEnd(10)} ${kb(r.from).padStart(10)} -> ${kb(r.to).padStart(9)}`)

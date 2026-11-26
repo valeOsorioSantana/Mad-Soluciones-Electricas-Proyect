@@ -41,8 +41,25 @@ curl -s -o /dev/null -w "%{http_code}\n" https://TU-DOMINIO/ruta-inexistente   #
 ```
 Y revisa la página en móvil y escritorio. Opcional: Lighthouse desde Chrome DevTools.
 
+## 8. Protección de imágenes en Cloudflare (recomendado)
+Qué ya está en el código: fotos pequeñas sin metadatos, **marca de agua del logo en las fotos ampliadas**, sin arrastrar ni clic derecho.
+Qué se configura en el panel de Cloudflare (no puede ir en el repositorio):
+
+1. **Regla de firewall** (*Security* › *WAF* › *Custom rules* › *Create rule* › *Edit expression*), acción **Block**:
+   ```
+   (starts_with(http.request.uri.path, "/assets/webp/")
+     and not http.referer contains "TU-DOMINIO.com"
+     and not http.referer contains ".pages.dev")
+   ```
+   Bloquea imágenes pedidas sin pasar por tu página (hotlinking, abrir la URL directa, descargadores simples). Cambia `TU-DOMINIO.com` por el dominio real.
+2. **Bot Fight Mode** (*Security* › *Bots*): activar.
+3. Si el plan gratis lo permite, una regla de **límite de peticiones** por IP sobre `/assets/webp/`.
+
+Comprobación: abre `https://TU-DOMINIO/assets/webp/<archivo>.webp` directamente (debe dar error 403) y confirma que la página sigue mostrando todas las fotos.
+Límite honesto: el `Referer` se puede falsificar desde un script y las capturas de pantalla no se pueden impedir.
+
 ## Notas
 - **Reversión:** en *Deployments* del proyecto puedes volver a un despliegue anterior.
-- **Protección de imágenes:** el *Hotlink Protection* integrado de Cloudflare solo cubre gif/ico/jpg/jpeg/png, no `webp`. Una regla personalizada de WAF por `Referer` puede cubrir `webp`; no frena capturas de pantalla.
+- **Protección de imágenes:** el *Hotlink Protection* integrado de Cloudflare solo cubre gif/ico/jpg/jpeg/png, no `webp`; por eso se usa la regla del punto 8.
 - **Cloudflare recomienda Workers para proyectos nuevos.** Pages sigue activo; si algún día se retira, migrar es un cambio de `wrangler pages deploy` a `wrangler deploy` (ver su guía de migración).
 - La demo en Render (`render.yaml`) puede borrarse al terminar; no interfiere con este flujo.
