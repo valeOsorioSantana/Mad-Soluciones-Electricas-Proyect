@@ -19,7 +19,14 @@ jobs:
 
   deploy:
     needs: ci
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Solo se despliega si:
+    #  - ya configuraste la variable CLOUDFLARE_PROJECT_NAME (si no, se omite sin marcar error),
+    #  - no es una PR de Dependabot (esas ejecuciones no reciben los secretos normales),
+    #  - y, en PRs, la rama es de este mismo repositorio.
+    if: >-
+      vars.CLOUDFLARE_PROJECT_NAME != '' &&
+      github.actor != 'dependabot[bot]' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     permissions:
       contents: read
