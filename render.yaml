@@ -1,0 +1,36 @@
+# Despliegue TEMPORAL en Render como sitio estático (demo para el cliente).
+# Render > New > Blueprint > elegir este repositorio.
+services:
+  - type: web
+    runtime: static
+    name: mad-soluciones-electricas
+    branch: main
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    # La app es una SPA: cualquier ruta devuelve index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # Es una demo: que Google no la indexe
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      # Archivos con hash: caché larga
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable

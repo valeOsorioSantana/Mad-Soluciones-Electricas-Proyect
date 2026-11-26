@@ -1,10 +1,10 @@
 name: Deploy
 
-# Construye la imagen Docker y la publica en GitHub Container Registry al hacer push a main.
+# Construye la imagen Docker y la publica en GitHub Container Registry.
+# Solo se ejecuta a mano (Actions > Deploy > Run workflow): la demo temporal usa Render (ver render.yaml).
+# Para producción con Docker, vuelve a agregar `push: branches: [main]` en `on:`.
 # El último paso (desplegar en tu servidor) está parametrizado con secretos: ver README.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
