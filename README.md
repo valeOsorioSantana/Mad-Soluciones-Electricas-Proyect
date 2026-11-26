@@ -78,6 +78,10 @@ docker run -p 8080:8080 -e ALLOWED_HOSTS="midominio.com *.midominio.com" mad-web
 - `.github/workflows/ci.yml`: lint, typecheck, tests y build en cada push/PR.
 - `.github/workflows/deploy.yml`: construye y publica la imagen en GHCR en `main`. El despliegue por SSH se activa con la variable `DEPLOY_ENABLED=true` y los secretos `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` (+ variable `ALLOWED_HOSTS`).
 
+## Producción: Cloudflare Pages
+
+CI/CD con GitHub Actions (`deploy-cloudflare.yml`): si CI pasa, publica en Cloudflare Pages; los pull requests generan vista previa. Cabeceras de seguridad y caché en `public/_headers`. Guía completa: [docs/DEPLOY-CLOUDFLARE.md](docs/DEPLOY-CLOUDFLARE.md).
+
 ## Demo temporal en Render
 
 `render.yaml` despliega el sitio como **Static Site** (build `npm ci && npm run build`, publica `dist/`, reescribe todas las rutas a `index.html`, `noindex` para que Google no lo indexe). Pasos en el chat del proyecto; resumen: Render → New → Blueprint → elegir el repositorio → Apply. Cada `git push` a `main` redespliega solo. En Render no aplican las reglas de protección de imágenes de Nginx (solo sirven con Docker).

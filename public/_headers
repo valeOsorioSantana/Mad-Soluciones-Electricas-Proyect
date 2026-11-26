@@ -1,0 +1,21 @@
+# Cabeceras para Cloudflare Pages (se copia a dist/ al compilar).
+# Sintaxis: https://developers.cloudflare.com/pages/configuration/headers/
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+# Archivos con hash en el nombre: caché de un año
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Robots-Tag: noimageindex
+  Cross-Origin-Resource-Policy: same-origin
+
+# La página principal siempre se revalida para ver los despliegues de inmediato
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
